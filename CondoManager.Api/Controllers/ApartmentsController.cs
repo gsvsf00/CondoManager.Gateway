@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CondoManager.Api.DTOs.Apartments;
-using CondoManager.Api.Interfaces;
+using CondoManager.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -28,7 +28,7 @@ namespace CondoManager.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<ApartmentResponse>> GetApartment(Guid id)
+        public async Task<ActionResult<ApartmentResponse>> GetApartment(int id)
         {
             var result = await _service.GetByIdAsync(id);
             return result is null ? NotFound() : Ok(result);

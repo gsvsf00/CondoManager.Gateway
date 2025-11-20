@@ -1,6 +1,6 @@
 using CondoManager.Api.DTOs.Apartments;
 using CondoManager.Api.Infrastructure;
-using CondoManager.Api.Interfaces;
+using CondoManager.Api.Services.Interfaces;
 using CondoManager.Entity.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,7 +17,7 @@ namespace CondoManager.Api.Services
 
         public async Task<ApartmentResponse> CreateAsync(CreateApartmentRequest request)
         {
-            var entity = new Apartment { Id = Guid.NewGuid(), Number = request.Number };
+            var entity = new Apartment { Number = request.Number };
 
             // Validate and attach residents by user IDs if provided
             if (request.ResidentUserIds != null)
@@ -62,7 +62,7 @@ namespace CondoManager.Api.Services
             });
         }
 
-        public async Task<ApartmentResponse?> GetByIdAsync(Guid id)
+        public async Task<ApartmentResponse?> GetByIdAsync(int id)
         {
             var a = await _db.Apartments.Include(x => x.Residents).FirstOrDefaultAsync(x => x.Id == id);
             if (a == null) return null;

@@ -19,14 +19,14 @@ namespace CondoManager.Api.Infrastructure
 
         public string Generate(User user)
         {
-            return GenerateToken(user.Id.ToString(), user.Email, user.Roles);
+            return GenerateToken(user.Id, user.Email, user.Roles);
         }
 
-        public string GenerateToken(string userId, string? email, UserRole roles)
+        public string GenerateToken(int userId, string? email, UserRole roles)
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userId),
+                new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
                 new Claim(ClaimTypes.Email, email ?? "")
             };
 

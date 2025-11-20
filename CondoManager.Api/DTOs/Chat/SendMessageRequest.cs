@@ -5,9 +5,9 @@ namespace CondoManager.Api.DTOs.Chat
     public class SendMessageRequest
     {
         [Required]
-        public Guid SenderId { get; set; }
+        public int SenderId { get; set; }
         
-        public Guid? ApartmentId { get; set; }
+        public int? ApartmentId { get; set; }
         
         [Required]
         [StringLength(1000, MinimumLength = 1)]

@@ -354,3 +354,4 @@ FodyWeavers.xsd
 .Trashes
 ehthumbs.db
 Thumbs.db
+/CondoManager.Api/Migrations

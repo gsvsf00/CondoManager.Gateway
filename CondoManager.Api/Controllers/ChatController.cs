@@ -1,5 +1,5 @@
 using CondoManager.Api.DTOs.Chat;
-using CondoManager.Api.Interfaces;
+using CondoManager.Api.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -47,7 +47,7 @@ namespace CondoManager.Api.Controllers
         }
 
         [HttpGet("messages")]
-        public async Task<ActionResult<IEnumerable<MessageResponse>>> GetMessages([FromQuery] Guid? apartmentId = null)
+        public async Task<ActionResult<IEnumerable<MessageResponse>>> GetMessages([FromQuery] int? apartmentId = null)
         {
             try
             {
@@ -67,7 +67,7 @@ namespace CondoManager.Api.Controllers
             try
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 {
                     return Unauthorized("Invalid user token");
                 }
@@ -88,7 +88,7 @@ namespace CondoManager.Api.Controllers
             try
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 {
                     return Unauthorized("Invalid user token");
                 }
@@ -104,12 +104,12 @@ namespace CondoManager.Api.Controllers
         }
 
         [HttpGet("conversation/{conversationId}/messages")]
-        public async Task<ActionResult<IEnumerable<MessageResponse>>> GetConversationMessages(Guid conversationId, [FromQuery] int skip = 0, [FromQuery] int take = 50)
+        public async Task<ActionResult<IEnumerable<MessageResponse>>> GetConversationMessages(int conversationId, [FromQuery] int skip = 0, [FromQuery] int take = 50)
         {
             try
             {
                 var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-                if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                if (string.IsNullOrEmpty(userIdClaim) || !int.TryParse(userIdClaim, out var userId))
                 {
                     return Unauthorized("Invalid user token");
                 }

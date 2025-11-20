@@ -1,4 +1,4 @@
-using CondoManager.Api.Interfaces;
+using CondoManager.Api.Services.Interfaces;
 using CondoManager.Entity.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -18,7 +18,6 @@ namespace CondoManager.Api.Controllers
         }
 
         [HttpGet]
-        //[Authorize(Roles = "Admin")]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
         {
             var users = await _userService.GetAllUsersAsync();
@@ -26,7 +25,7 @@ namespace CondoManager.Api.Controllers
         }
 
         [HttpGet("{id}")]
-        public async Task<ActionResult<User>> GetUser(Guid id)
+        public async Task<ActionResult<User>> GetUser(int id)
         {
             var user = await _userService.GetUserWithApartmentsAsync(id);
             return user is null ? NotFound() : Ok(user);
@@ -42,7 +41,7 @@ namespace CondoManager.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutUser(Guid id, User user)
+        public async Task<IActionResult> PutUser(int id, User user)
         {
             if (id != user.Id) return BadRequest();
             
@@ -63,7 +62,7 @@ namespace CondoManager.Api.Controllers
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteUser(Guid id)
+        public async Task<IActionResult> DeleteUser(int id)
         {
             try
             {

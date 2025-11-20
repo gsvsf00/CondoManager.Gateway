@@ -1,15 +1,9 @@
 using CondoManager.Api.Events;
 using CondoManager.Api.Infrastructure;
+using CondoManager.Api.Services.Interfaces;
 
 namespace CondoManager.Api.Services
 {
-    public interface IAuthenticationEventService
-    {
-        Task PublishUserAuthenticatedAsync(UserAuthenticatedEvent authEvent);
-        Task PublishUserLoggedOutAsync(UserLoggedOutEvent logoutEvent);
-        Task PublishUserTokenChangedAsync(UserTokenChangedEvent tokenChangedEvent);
-    }
-
     public class AuthenticationEventService : IAuthenticationEventService
     {
         private readonly RabbitMqPublisher _publisher;

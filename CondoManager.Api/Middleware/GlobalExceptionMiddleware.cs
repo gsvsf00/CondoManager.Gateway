@@ -1,7 +1,6 @@
-using System.Net;
-using System.Text.Json;
-using CondoManager.Api.Services;
 using CondoManager.Api.Models;
+using CondoManager.Api.Services.Interfaces;
+using System.Text.Json;
 
 namespace CondoManager.Api.Middleware
 {
@@ -28,13 +27,14 @@ namespace CondoManager.Api.Middleware
             {
                 using var scope = _serviceProvider.CreateScope();
                 var loggingService = scope.ServiceProvider.GetService<ILoggingService>();
-                
-                loggingService?.LogError("An unhandled exception occurred", ex, new { 
+
+                loggingService?.LogError("An unhandled exception occurred", ex, new
+                {
                     RequestPath = context.Request.Path,
                     RequestMethod = context.Request.Method,
                     QueryString = context.Request.QueryString.ToString()
                 });
-                
+
                 _logger.LogError(ex, "An unhandled exception occurred");
                 await HandleExceptionAsync(context, ex);
             }
@@ -43,10 +43,10 @@ namespace CondoManager.Api.Middleware
         private static async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
             context.Response.ContentType = "application/json";
-            
+
             var requestPath = context.Request.Path.Value ?? "";
             ErrorResponse response;
-            
+
             switch (exception)
             {
                 case ArgumentException:
@@ -63,14 +63,14 @@ namespace CondoManager.Api.Middleware
                     response = ErrorResponse.InternalServerError("An internal server error occurred", requestPath);
                     break;
             }
-            
+
             context.Response.StatusCode = response.StatusCode;
-            
+
             var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
             {
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
-            
+
             await context.Response.WriteAsync(jsonResponse);
         }
     }

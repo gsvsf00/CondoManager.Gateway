@@ -1,15 +1,8 @@
+using CondoManager.Api.Services.Interfaces;
 using System.Text.Json;
 
 namespace CondoManager.Api.Services
 {
-    public interface ILoggingService
-    {
-        void LogInfo(string message, object? data = null);
-        void LogWarning(string message, object? data = null);
-        void LogError(string message, Exception? exception = null, object? data = null);
-        void LogDebug(string message, object? data = null);
-    }
-
     public class LoggingService : ILoggingService
     {
         private readonly ILogger<LoggingService> _logger;

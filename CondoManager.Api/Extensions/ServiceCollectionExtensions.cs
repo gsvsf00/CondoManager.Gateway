@@ -1,10 +1,9 @@
 using CondoManager.Api.Config;
 using CondoManager.Api.Infrastructure;
-using CondoManager.Api.Interfaces;
 using CondoManager.Api.Services;
+using CondoManager.Api.Services.Interfaces;
 using CondoManager.Repository;
 using CondoManager.Repository.Interfaces;
-using CondoManager.Api.Infrastructure;
 using Microsoft.EntityFrameworkCore;
 
 namespace CondoManager.Api.Extensions
@@ -15,12 +14,11 @@ namespace CondoManager.Api.Extensions
         {
             // Bind config
             services.Configure<RabbitMqOptions>(configuration.GetSection("RabbitMq"));
-            services.Configure<DatabaseOptions>(configuration.GetSection("Database"));
 
             // DbContext
-            var dbOptions = configuration.GetSection("Database").Get<DatabaseOptions>();
-            services.AddDbContext<CondoContext>(opts => opts.UseSqlite(dbOptions?.ConnectionString ?? "Data Source=condomanager.db"));
-            
+            services.AddDbContext<CondoContext>(options =>
+                options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
+
             // Register CondoContext as DbContext for UnitOfWork
             services.AddScoped<DbContext>(provider => provider.GetService<CondoContext>()!);
 
@@ -29,7 +27,7 @@ namespace CondoManager.Api.Extensions
 
             // Repository layer
             services.AddScoped<IUnitOfWork, UnitOfWork>();
-            
+
             // Register services
             services.AddScoped<IAuthService, AuthService>();
             services.AddScoped<IUserService, UserService>();
@@ -37,11 +35,12 @@ namespace CondoManager.Api.Extensions
             services.AddScoped<IAuthenticationEventService, AuthenticationEventService>();
             services.AddScoped<IChatService, ChatService>();
             services.AddScoped<IApartmentService, ApartmentService>();
-            
+            services.AddScoped<IPostService, PostService>();
+
             // Message event handling
             services.AddScoped<IMessageEventHandler, MessageEventHandler>();
             services.AddHostedService<RabbitMqConsumerService>();
-            
+
             // Register RabbitMQ Publisher (remove duplicate)
             // services.AddSingleton<RabbitMqPublisher>(); // Already registered above
 

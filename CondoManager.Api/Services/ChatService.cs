@@ -1,6 +1,6 @@
 using CondoManager.Api.DTOs.Chat;
 using CondoManager.Api.Infrastructure;
-using CondoManager.Api.Interfaces;
+using CondoManager.Api.Services.Interfaces;
 using CondoManager.Entity.Events;
 using CondoManager.Entity.Models;
 using CondoManager.Repository.Interfaces;
@@ -30,7 +30,7 @@ namespace CondoManager.Api.Services
                 var testUser = new User
                 {
                     Id = request.SenderId,
-                    Name = "Test User",
+                    FullName = "Test User",
                     Email = "test@example.com",
                     Phone = "1234567890",
                     PasswordHash = "hashedpassword",
@@ -46,7 +46,6 @@ namespace CondoManager.Api.Services
             // Create a conversation first
             var conversation = new Conversation
             {
-                Id = Guid.NewGuid(),
                 Type = Entity.Enums.ConversationType.Direct,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
@@ -58,7 +57,6 @@ namespace CondoManager.Api.Services
             // Create message
             var message = new Message
             {
-                Id = Guid.NewGuid(),
                 SenderId = request.SenderId,
                 ConversationId = conversation.Id, // Use the created conversation ID
                 ApartmentId = request.ApartmentId,
@@ -97,7 +95,7 @@ namespace CondoManager.Api.Services
             };
         }
 
-        public async Task<IEnumerable<MessageResponse>> GetMessagesAsync(Guid? apartmentId)
+        public async Task<IEnumerable<MessageResponse>> GetMessagesAsync(int? apartmentId)
         {
             var messages = await _unitOfWork.Messages.GetByApartmentIdAsync(apartmentId);
             
@@ -112,7 +110,7 @@ namespace CondoManager.Api.Services
             });
         }
 
-        public async Task<IEnumerable<MessageResponse>> GetUserMessagesAsync(Guid userId)
+        public async Task<IEnumerable<MessageResponse>> GetUserMessagesAsync(int userId)
         {
             var messages = await _unitOfWork.Messages.GetBySenderIdAsync(userId);
             
@@ -127,7 +125,7 @@ namespace CondoManager.Api.Services
             });
         }
 
-        public async Task<IEnumerable<ConversationResponse>> GetUserConversationsAsync(Guid userId)
+        public async Task<IEnumerable<ConversationResponse>> GetUserConversationsAsync(int userId)
         {
             var conversations = await _unitOfWork.Conversations.GetUserConversationsAsync(userId);
             var conversationResponses = new List<ConversationResponse>();
@@ -160,7 +158,7 @@ namespace CondoManager.Api.Services
                     Participants = participants.Select(p => new ConversationParticipantResponse
                     {
                         UserId = p.UserId,
-                        UserName = p.User?.Name ?? "Unknown",
+                        UserName = p.User?.FullName ?? "Unknown",
                         UserEmail = p.User?.Email ?? "Unknown",
                         IsAdmin = p.IsAdmin,
                         JoinedAt = p.JoinedAt
@@ -173,7 +171,7 @@ namespace CondoManager.Api.Services
             return conversationResponses.OrderByDescending(c => c.LastMessageAt ?? c.CreatedAt);
         }
 
-        public async Task<IEnumerable<MessageResponse>> GetConversationMessagesAsync(Guid conversationId, int skip = 0, int take = 50)
+        public async Task<IEnumerable<MessageResponse>> GetConversationMessagesAsync(int conversationId, int skip = 0, int take = 50)
         {
             var messages = await _unitOfWork.Messages.GetByConversationIdAsync(conversationId, skip, take);
             
@@ -188,7 +186,7 @@ namespace CondoManager.Api.Services
             });
         }
 
-        public async Task<bool> IsUserInConversationAsync(Guid userId, Guid conversationId)
+        public async Task<bool> IsUserInConversationAsync(int userId, int conversationId)
         {
             var participant = await _unitOfWork.ConversationParticipants.GetParticipantAsync(conversationId, userId);
             return participant != null;

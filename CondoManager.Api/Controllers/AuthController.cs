@@ -1,8 +1,8 @@
 using CondoManager.Api.DTOs.Auth;
-using CondoManager.Api.Interfaces;
 using CondoManager.Api.Models;
 using CondoManager.Api.Events;
 using Microsoft.AspNetCore.Mvc;
+using CondoManager.Api.Services.Interfaces;
 
 namespace CondoManager.Api.Controllers
 {
@@ -37,7 +37,7 @@ namespace CondoManager.Api.Controllers
                 var errorResponse = ErrorResponse.BadRequest(ex.Message, Request.Path);
                 return BadRequest(errorResponse);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 var errorResponse = ErrorResponse.InternalServerError("An error occurred during registration", Request.Path);
                 return StatusCode(500, errorResponse);
@@ -64,7 +64,7 @@ namespace CondoManager.Api.Controllers
                 var errorResponse = ErrorResponse.Unauthorized(ex.Message, Request.Path);
                 return Unauthorized(errorResponse);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 var errorResponse = ErrorResponse.InternalServerError("An error occurred during login", Request.Path);
                 return StatusCode(500, errorResponse);
@@ -86,7 +86,7 @@ namespace CondoManager.Api.Controllers
                 var response = await _authService.ValidateAuthTokenAsync(request.UserId, request.AuthToken);
                 return Ok(response);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 var errorResponse = ErrorResponse.InternalServerError("An error occurred during token validation", Request.Path);
                 return StatusCode(500, errorResponse);
@@ -108,7 +108,7 @@ namespace CondoManager.Api.Controllers
                 await _authService.LogoutAsync(request.UserId, request.AuthToken);
                 return Ok(new { message = "Logged out successfully" });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 var errorResponse = ErrorResponse.InternalServerError("An error occurred during logout", Request.Path);
                 return StatusCode(500, errorResponse);

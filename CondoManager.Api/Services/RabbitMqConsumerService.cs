@@ -1,4 +1,5 @@
 using CondoManager.Api.Config;
+using CondoManager.Api.Services.Interfaces;
 using CondoManager.Entity.Events;
 using Microsoft.Extensions.Options;
 using RabbitMQ.Client;

@@ -1,8 +1,9 @@
-using CondoManager.Api.Interfaces;
 using CondoManager.Api.Infrastructure;
 using CondoManager.Entity.Models;
 using CondoManager.Entity.Events;
 using CondoManager.Repository.Interfaces;
+using CondoManager.Api.Services.Interfaces;
+using CondoManager.Api.DTOs.User;
 
 namespace CondoManager.Api.Services
 {
@@ -17,17 +18,23 @@ namespace CondoManager.Api.Services
             _eventPublisher = eventPublisher;
         }
 
-        public async Task<IEnumerable<User>> GetAllUsersAsync()
+        public async Task<IEnumerable<UserResponse>> GetAllUsersAsync()
         {
-            return await _unitOfWork.Users.GetAllAsync();
+            var users = await _unitOfWork.Users.GetAllAsync();
+
+            return new List<UserResponse>(users.Select(user => new UserResponse
+            {
+                Id = user.Id,
+                FullName = user.FullName
+            }));
         }
 
-        public async Task<User?> GetUserByIdAsync(Guid id)
+        public async Task<User?> GetUserByIdAsync(int id)
         {
             return await _unitOfWork.Users.GetByIdAsync(id);
         }
 
-        public async Task<User?> GetUserWithApartmentsAsync(Guid id)
+        public async Task<User?> GetUserWithApartmentsAsync(int id)
         {
             return await _unitOfWork.Users.GetWithApartmentsAsync(id);
         }
@@ -37,7 +44,7 @@ namespace CondoManager.Api.Services
             return await _unitOfWork.Users.GetByEmailAsync(email);
         }
 
-        public async Task<IEnumerable<User>> GetUsersByApartmentIdAsync(Guid apartmentId)
+        public async Task<IEnumerable<User>> GetUsersByApartmentIdAsync(int apartmentId)
         {
             return await _unitOfWork.Users.GetByApartmentIdAsync(apartmentId);
         }
@@ -55,7 +62,7 @@ namespace CondoManager.Api.Services
                 throw new InvalidOperationException($"User with ID {user.Id} not found");
 
             // Update properties
-            existingUser.Name = user.Name;
+            existingUser.FullName = user.FullName;
             existingUser.Email = user.Email;
             existingUser.Phone = user.Phone;
             existingUser.Roles = user.Roles;
@@ -69,14 +76,14 @@ namespace CondoManager.Api.Services
             {
                 UserId = existingUser.Id,
                 Email = existingUser.Email,
-                Name = existingUser.Name.Split(' ').FirstOrDefault() ?? ""
+                Name = existingUser.FullName.Split(' ').FirstOrDefault() ?? ""
             };
             await _eventPublisher.PublishAsync(userUpdatedEvent, "user.updated");
 
             return existingUser;
         }
 
-        public async Task DeleteUserAsync(Guid id)
+        public async Task DeleteUserAsync(int id)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(id);
             if (user == null)
@@ -94,7 +101,7 @@ namespace CondoManager.Api.Services
             await _unitOfWork.SaveChangesAsync();
         }
 
-        public async Task<bool> UserExistsAsync(Guid id)
+        public async Task<bool> UserExistsAsync(int id)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(id);
             return user != null;

@@ -1,14 +1,25 @@
-using CondoManager.Api.Config;
+﻿using CondoManager.Api.Config;
 using CondoManager.Api.Extensions;
 using CondoManager.Api.Infrastructure;
 using CondoManager.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy
+            .AllowAnyOrigin()
+            .WithMethods("GET", "POST", "PUT", "DELETE")
+            .AllowAnyHeader();
+    });
+});
 
 // Configuration: add options from appsettings
 builder.Services.AddApplicationServices(builder.Configuration);
@@ -19,7 +30,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
 {
     options.SwaggerDoc("v1", new OpenApiInfo { Title = "CondoManager API", Version = "v1" });
-    
+
     // Add JWT Authentication to Swagger
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -29,21 +40,21 @@ builder.Services.AddSwaggerGen(options =>
         Type = SecuritySchemeType.ApiKey,
         Scheme = "Bearer"
     });
-    
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
+
+    //options.AddSecurityRequirement(new OpenApiSecurityRequirement
+    //{
+    //    {
+    //        new OpenApiSecurityScheme
+    //        {
+    //            Reference = new OpenApiReference
+    //            {
+    //                Type = ReferenceType.SecurityScheme,
+    //                Id = "Bearer"
+    //            }
+    //        },
+    //        Array.Empty<string>()
+    //    }
+    //});
 });
 
 // Configure JWT
@@ -73,10 +84,10 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-// migrate db automatically on startup (optional, useful in dev)
+// ✅ Automatically apply migrations on startup
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<CondoManager.Api.Infrastructure.CondoContext>();
+    var db = scope.ServiceProvider.GetRequiredService<CondoContext>();
     db.Database.Migrate();
 }
 
@@ -86,6 +97,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+// ✅ Must come before exception, auth, and controllers
+app.UseCors("AllowAll");
 
 // Add global exception handling
 app.UseMiddleware<GlobalExceptionMiddleware>();

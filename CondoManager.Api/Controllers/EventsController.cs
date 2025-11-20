@@ -38,7 +38,7 @@ namespace CondoManager.Api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEvent(Guid id, Event evt)
+        public async Task<IActionResult> PutEvent(int id, Event evt)
         {
             if (id != evt.Id) return BadRequest();
             _context.Entry(evt).State = EntityState.Modified;

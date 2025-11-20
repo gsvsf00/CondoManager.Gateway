@@ -1,8 +1,11 @@
-using System.ComponentModel.DataAnnotations;
 using CondoManager.Api.Attributes;
+using CondoManager.Api.ModelBinders;
+using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace CondoManager.Api.DTOs.Auth
 {
+    [ModelBinder(BinderType = typeof(LoginRequestBinder))]
     public class LoginRequest
     {
         [EmailValidation]

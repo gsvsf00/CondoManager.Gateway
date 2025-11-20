@@ -2,8 +2,8 @@
 {
     public class ApartmentResponse
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public string Number { get; set; } = string.Empty;
-        public IEnumerable<Guid> ResidentUserIds { get; set; } = new List<Guid>();
+        public IEnumerable<int> ResidentUserIds { get; set; } = new List<int>();
     }
 }

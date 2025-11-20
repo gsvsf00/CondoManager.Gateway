@@ -4,10 +4,10 @@ namespace CondoManager.Api.DTOs.Chat
 {
     public class ConversationResponse
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public ConversationType Type { get; set; }
         public string? Name { get; set; }
-        public Guid? ApartmentId { get; set; }
+        public int? ApartmentId { get; set; }
         public string? ApartmentNumber { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? LastMessageAt { get; set; }
@@ -19,7 +19,7 @@ namespace CondoManager.Api.DTOs.Chat
 
     public class ConversationParticipantResponse
     {
-        public Guid UserId { get; set; }
+        public int UserId { get; set; }
         public string UserName { get; set; } = string.Empty;
         public string UserEmail { get; set; } = string.Empty;
         public bool IsAdmin { get; set; }

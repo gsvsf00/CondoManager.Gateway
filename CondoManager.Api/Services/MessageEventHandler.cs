@@ -3,16 +3,10 @@ using CondoManager.Entity.Models;
 using CondoManager.Entity.Enums;
 using CondoManager.Repository.Interfaces;
 using CondoManager.Api.Infrastructure;
+using CondoManager.Api.Services.Interfaces;
 
 namespace CondoManager.Api.Services
 {
-    public interface IMessageEventHandler
-    {
-        Task HandleMessageReceivedAsync(MessageReceivedEvent messageEvent);
-        Task HandleMessageReadAsync(MessageReadEvent readEvent);
-        Task HandleMessageDeliveredAsync(MessageDeliveredEvent deliveredEvent);
-    }
-
     public class MessageEventHandler : IMessageEventHandler
     {
         private readonly IUnitOfWork _unitOfWork;
@@ -46,7 +40,6 @@ namespace CondoManager.Api.Services
                     {
                         conversation = new Conversation
                         {
-                            Id = Guid.NewGuid(),
                             Type = ConversationType.Direct,
                             CreatedByUserId = messageEvent.SenderId,
                             CreatedAt = DateTime.UtcNow,
@@ -58,7 +51,6 @@ namespace CondoManager.Api.Services
                         // Add participants
                         await _unitOfWork.ConversationParticipants.AddAsync(new ConversationParticipant
                         {
-                            Id = Guid.NewGuid(),
                             ConversationId = conversation.Id,
                             UserId = messageEvent.SenderId,
                             JoinedAt = DateTime.UtcNow,
@@ -67,7 +59,6 @@ namespace CondoManager.Api.Services
 
                         await _unitOfWork.ConversationParticipants.AddAsync(new ConversationParticipant
                         {
-                            Id = Guid.NewGuid(),
                             ConversationId = conversation.Id,
                             UserId = messageEvent.RecipientId.Value,
                             JoinedAt = DateTime.UtcNow,
@@ -104,7 +95,6 @@ namespace CondoManager.Api.Services
                 // Create and save message
                 var message = new Message
                 {
-                    Id = Guid.NewGuid(),
                     SenderId = messageEvent.SenderId,
                     ConversationId = conversation.Id,
                     RecipientId = messageEvent.RecipientId,

@@ -1,16 +1,15 @@
 using CondoManager.Api.DTOs.Auth;
 using CondoManager.Api.Infrastructure;
-using CondoManager.Api.Interfaces;
 using CondoManager.Api.Events;
 using CondoManager.Entity.Models;
 using CondoManager.Entity.Enums;
 using CondoManager.Entity.Events;
 using CondoManager.Repository.Interfaces;
-using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using CondoManager.Api.Services.Interfaces;
 
 namespace CondoManager.Api.Services
 {
@@ -48,8 +47,7 @@ namespace CondoManager.Api.Services
 
             var user = new User
             {
-                Id = Guid.NewGuid(),
-                Name = request.Name,
+                FullName = request.FullName,
                 Email = string.IsNullOrWhiteSpace(request.Email) ? null : request.Email,
                 Phone = string.IsNullOrWhiteSpace(request.Phone) ? null : request.Phone,
                 PasswordHash = HashPassword(request.Password),
@@ -69,11 +67,11 @@ namespace CondoManager.Api.Services
                 UserId = user.Id,
                 Email = user.Email,
                 Phone = user.Phone,
-                Name = user.Name.Split(' ').FirstOrDefault() ?? ""
+                Name = user.FullName.Split(' ').FirstOrDefault() ?? ""
             };
             await _eventPublisher.PublishAsync(userRegisteredEvent, "user.registered");
 
-            var token = _jwtGenerator.GenerateToken(user.Id.ToString(), user.Email, user.Roles);
+            var token = _jwtGenerator.GenerateToken(user.Id, user.Email, user.Roles);
             
             // Generate a persistent auth token for the new user
             var authToken = GenerateAuthToken();
@@ -85,11 +83,15 @@ namespace CondoManager.Api.Services
 
             return new LoginResponse
             {
-                Token = token,
-                Email = user.Email,
-                Phone = user.Phone,
-                Roles = user.Roles.ToString(),
-                AuthToken = authToken
+                Access = token,
+                Refresh = authToken,
+                User = new UserInfo
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Phone = user.Phone,
+                    Name = user.FullName
+                }
             };
         }
 
@@ -114,7 +116,7 @@ namespace CondoManager.Api.Services
                 throw new UnauthorizedAccessException("Invalid login or password");
             }
 
-            var token = _jwtGenerator.GenerateToken(user.Id.ToString(), user.Email, user.Roles);
+            var token = _jwtGenerator.GenerateToken(user.Id, user.Email, user.Roles);
             
             // Generate a persistent auth token
             var authToken = GenerateAuthToken();
@@ -129,7 +131,7 @@ namespace CondoManager.Api.Services
             var authEvent = new UserAuthenticatedEvent
             {
                 UserId = user.Id.ToString(),
-                UserName = user.Name,
+                UserName = user.FullName,
                 Email = user.Email ?? string.Empty,
                 Role = user.Roles.ToString(),
                 AuthenticatedAt = DateTime.UtcNow,
@@ -141,11 +143,16 @@ namespace CondoManager.Api.Services
 
             return new LoginResponse
             {
-                Token = token,
-                Email = user.Email is not null ? user.Email : null,
-                Phone = user.Phone is not null ? user.Phone : null,
-                Roles = user.Roles.ToString(),
-                AuthToken = authToken
+                Access = token,
+                Refresh = authToken,
+                User = new UserInfo
+                {
+                    Id = user.Id,
+                    Email = user.Email,
+                    Phone = user.Phone,
+                    Name = user.FullName,
+                    Roles = user.Roles.ToString()
+                }
             };
         }
 
@@ -155,7 +162,7 @@ namespace CondoManager.Api.Services
             if (principal == null) return null;
 
             var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim, out var userId))
+            if (userIdClaim == null || !int.TryParse(userIdClaim, out var userId))
                 return null;
 
             return await _unitOfWork.Users.GetByIdAsync(userId);
@@ -177,7 +184,7 @@ namespace CondoManager.Api.Services
             }
         }
 
-        public async Task<bool> ValidateUserAsync(Guid userId)
+        public async Task<bool> ValidateUserAsync(int userId)
         {
             var user = await _unitOfWork.Users.GetByIdAsync(userId);
             return user != null;
@@ -206,12 +213,12 @@ namespace CondoManager.Api.Services
 
         public async Task<TokenValidationResponse> ValidateAuthTokenAsync(string userId, string authToken)
         {
-            if (!Guid.TryParse(userId, out var userGuid))
+            if (!int.TryParse(userId, out var userInt))
             {
                 return new TokenValidationResponse { IsValid = false };
             }
 
-            var user = await _unitOfWork.Users.GetByIdAsync(userGuid);
+            var user = await _unitOfWork.Users.GetByIdAsync(userInt);
             if (user == null || user.AuthToken != authToken)
             {
                 return new TokenValidationResponse { IsValid = false };
@@ -221,7 +228,7 @@ namespace CondoManager.Api.Services
             {
                 IsValid = true,
                 UserId = user.Id.ToString(),
-                UserName = user.Name,
+                UserName = user.FullName,
                 Role = user.Roles.ToString(),
                 CurrentToken = user.AuthToken ?? string.Empty
             };
@@ -229,10 +236,10 @@ namespace CondoManager.Api.Services
 
         public async Task LogoutAsync(string userId, string authToken)
         {
-            if (!Guid.TryParse(userId, out var userGuid))
+            if (!int.TryParse(userId, out var userInt))
                 return;
 
-            var user = await _unitOfWork.Users.GetByIdAsync(userGuid);
+            var user = await _unitOfWork.Users.GetByIdAsync(userInt);
             if (user != null && user.AuthToken == authToken)
             {
                 user.AuthToken = null;
